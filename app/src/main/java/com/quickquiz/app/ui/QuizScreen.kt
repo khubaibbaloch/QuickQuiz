@@ -79,7 +79,7 @@ fun QuizScreen() {
 
     Scaffold(topBar = {
         TopAppBar(
-            title = { Text("Quiz App") })
+            title = { Text("QuickQuiz") })
     }, content = { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             if (isQuizFinished) {
