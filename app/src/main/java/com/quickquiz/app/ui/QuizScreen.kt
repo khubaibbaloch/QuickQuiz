@@ -78,14 +78,7 @@ fun QuizScreen() {
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                // Show loading spinner while questions load
                 if (questionSet == null) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
                     return@Box
                 }
 
@@ -152,33 +145,39 @@ fun QuizScreen() {
                             },
                             label = "Slide Question"
                         ) { index ->
-                            val question = questions[index]
-                            val options = listOf(
-                                "A" to question.A,
-                                "B" to question.B,
-                                "C" to question.C,
-                                "D" to question.D
-                            )
+                            if (index in questions.indices) {
+                                val question = questions[index]
+                                val options = listOf(
+                                    "A" to question.A,
+                                    "B" to question.B,
+                                    "C" to question.C,
+                                    "D" to question.D
+                                )
 
-                            Column {
-                                Text(text = question.question, fontSize = 20.sp)
-                                Spacer(modifier = Modifier.height(20.dp))
+                                Column {
+                                    Text(text = question.question, fontSize = 20.sp)
+                                    Spacer(modifier = Modifier.height(20.dp))
 
-                                options.forEach { (key, value) ->
-                                    Button(
-                                        onClick = { selectedOption = key },
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 4.dp),
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = if (selectedOption == key) Color.LightGray else MaterialTheme.colorScheme.primary
-                                        )
-                                    ) {
-                                        Text("$key. $value")
+                                    options.forEach { (key, value) ->
+                                        Button(
+                                            onClick = { selectedOption = key },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 4.dp),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = if (selectedOption == key) Color.LightGray else MaterialTheme.colorScheme.primary
+                                            )
+                                        ) {
+                                            Text("$key. $value")
+                                        }
                                     }
                                 }
+                            } else {
+                                // fallback UI for invalid index
+                                Text("Loading...", modifier = Modifier.padding(16.dp))
                             }
                         }
+
 
                         Spacer(modifier = Modifier.height(20.dp))
 
@@ -210,8 +209,8 @@ fun QuizScreen() {
 
 
 fun loadQuizQuestions(context: Context): List<QuizQuestion> {
-    val json = context.assets.open("questions.json").bufferedReader().use { it.readText() }
-    val gson = Gson()
-    val type = object : TypeToken<List<QuizQuestion>>() {}.type
-    return gson.fromJson(json, type)
+    val inputStream = context.assets.open("questions.json")
+    val jsonString = inputStream.bufferedReader().use { it.readText() }
+    val listType = object : TypeToken<List<QuizQuestion>>() {}.type
+    return Gson().fromJson(jsonString, listType)
 }

@@ -19,3 +19,14 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep the model used by Gson
+-keep class com.quickquiz.app.data.model.QuizQuestion { *; }
+
+# Keep generic type info used by Gson TypeToken
+-keepattributes Signature
+
+# Keep Gson annotations if any
+-keepclassmembers class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
