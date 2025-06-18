@@ -53,17 +53,6 @@ fun QuizScreen() {
         questionSet = loadQuizQuestions(context).shuffled().take(10)
     }
 
-    val questions = questionSet
-
-    if (questions == null) {
-        Box(
-            modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
-        }
-        return
-    }
-
     var currentIndex by remember { mutableIntStateOf(0) }
     var selectedOption by remember { mutableStateOf<String?>(null) }
     var score by remember { mutableIntStateOf(0) }
@@ -77,123 +66,147 @@ fun QuizScreen() {
         else -> ""
     }
 
-    Scaffold(topBar = {
-        TopAppBar(
-            title = { Text("QuickQuiz") })
-    }, content = { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
-            if (isQuizFinished) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(24.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text("🎉 Quiz Finished!", fontSize = 24.sp)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text("$score/10", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(feedbackMessage, fontSize = 18.sp)
-                    Spacer(modifier = Modifier.height(24.dp))
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("QuickQuiz") }
+            )
+        },
+        content = { innerPadding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                // Show loading spinner while questions load
+                if (questionSet == null) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                    return@Box
+                }
 
-                    Row {
-                        Button(
-                            onClick = {
-                                currentIndex = 0
-                                selectedOption = null
-                                score = 0
-                                isQuizFinished = false
-                            }, modifier = Modifier.padding(end = 8.dp)
-                        ) {
-                            Text("Try Again")
-                        }
+                if (isQuizFinished) {
+                    // Result screen
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(24.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("🎉 Quiz Finished!", fontSize = 24.sp)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("$score/10", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(feedbackMessage, fontSize = 18.sp)
+                        Spacer(modifier = Modifier.height(24.dp))
 
-                        Button(
-                            onClick = {
-                                questionSet = loadQuizQuestions(context).shuffled().take(10)
-                                currentIndex = 0
-                                selectedOption = null
-                                score = 0
-                                isQuizFinished = false
-                            }) {
-                            Text("Next Round")
+                        Row {
+                            Button(
+                                onClick = {
+                                    currentIndex = 0
+                                    selectedOption = null
+                                    score = 0
+                                    isQuizFinished = false
+                                },
+                                modifier = Modifier.padding(end = 8.dp)
+                            ) {
+                                Text("Try Again")
+                            }
+
+                            Button(
+                                onClick = {
+                                    questionSet = loadQuizQuestions(context).shuffled().take(10)
+                                    currentIndex = 0
+                                    selectedOption = null
+                                    score = 0
+                                    isQuizFinished = false
+                                }
+                            ) {
+                                Text("Next Round")
+                            }
                         }
                     }
-                }
-            } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-                ) {
-                    Text("Question ${currentIndex + 1} of 10", fontSize = 16.sp)
-                    Spacer(modifier = Modifier.height(10.dp))
+                } else {
+                    val questions = questionSet!!
 
-                    AnimatedContent(
-                        targetState = currentIndex,
-                        transitionSpec = {
-                            slideInHorizontally(animationSpec = tween(300)) { fullWidth -> fullWidth } +
-                                    fadeIn(animationSpec = tween(300)) togetherWith
-                                    slideOutHorizontally(animationSpec = tween(300)) { fullWidth -> -fullWidth } +
-                                    fadeOut(animationSpec = tween(300))
-                        },
-                        label = "Slide Question"
-                    ) { index ->
-                        val question = questions[index]
-                        val options = listOf(
-                            "A" to question.A,
-                            "B" to question.B,
-                            "C" to question.C,
-                            "D" to question.D
-                        )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                    ) {
+                        Text("Question ${currentIndex + 1} of 10", fontSize = 16.sp)
+                        Spacer(modifier = Modifier.height(10.dp))
 
-                        Column {
-                            Text(text = question.question, fontSize = 20.sp)
-                            Spacer(modifier = Modifier.height(20.dp))
+                        AnimatedContent(
+                            targetState = currentIndex,
+                            transitionSpec = {
+                                slideInHorizontally(animationSpec = tween(300)) { it } +
+                                        fadeIn(animationSpec = tween(300)) togetherWith
+                                        slideOutHorizontally(animationSpec = tween(300)) { -it } +
+                                        fadeOut(animationSpec = tween(300))
+                            },
+                            label = "Slide Question"
+                        ) { index ->
+                            val question = questions[index]
+                            val options = listOf(
+                                "A" to question.A,
+                                "B" to question.B,
+                                "C" to question.C,
+                                "D" to question.D
+                            )
 
-                            options.forEach { (key, value) ->
-                                Button(
-                                    onClick = { selectedOption = key },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 4.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = if (selectedOption == key) Color.LightGray else MaterialTheme.colorScheme.primary
-                                    )
-                                ) {
-                                    Text("$key. $value")
+                            Column {
+                                Text(text = question.question, fontSize = 20.sp)
+                                Spacer(modifier = Modifier.height(20.dp))
+
+                                options.forEach { (key, value) ->
+                                    Button(
+                                        onClick = { selectedOption = key },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 4.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = if (selectedOption == key) Color.LightGray else MaterialTheme.colorScheme.primary
+                                        )
+                                    ) {
+                                        Text("$key. $value")
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
 
-                    Button(
-                        onClick = {
-                            if (selectedOption == questions[currentIndex].answer) {
-                                score++
-                            }
-
-                            if (currentIndex + 1 < 10) {
-                                selectedOption = null
-                                currentIndex++
-                            } else {
-                                isQuizFinished = true
-                            }
-                        },
-                        enabled = selectedOption != null,
-                        modifier = Modifier.align(Alignment.End)
-                    ) {
-                        Text(if (currentIndex == 9) "Finish" else "Next")
+                        Button(
+                            onClick = {
+                                if (selectedOption == questions[currentIndex].answer) {
+                                    score++
+                                }
+                                if (currentIndex + 1 < 10) {
+                                    selectedOption = null
+                                    currentIndex++
+                                } else {
+                                    isQuizFinished = true
+                                }
+                            },
+                            enabled = selectedOption != null,
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Text(if (currentIndex == 9) "Finish" else "Next")
+                        }
                     }
                 }
             }
-
         }
-    })
+    )
 }
+
+
 
 
 fun loadQuizQuestions(context: Context): List<QuizQuestion> {
