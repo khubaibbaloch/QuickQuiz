@@ -178,7 +178,7 @@ fun QuizScreen() {
 
                             if (currentIndex + 1 < 10) {
                                 selectedOption = null
-                                currentIndex++ // this will trigger animation
+                                currentIndex++
                             } else {
                                 isQuizFinished = true
                             }
