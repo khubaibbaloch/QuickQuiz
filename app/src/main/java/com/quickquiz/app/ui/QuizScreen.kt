@@ -79,7 +79,7 @@ fun QuizScreen() {
 
     Scaffold(topBar = {
         TopAppBar(
-            title = { Text("QuickQuiz") })
+            title = { Text("Quiz App") })
     }, content = { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             if (isQuizFinished) {
@@ -178,7 +178,7 @@ fun QuizScreen() {
 
                             if (currentIndex + 1 < 10) {
                                 selectedOption = null
-                                currentIndex++
+                                currentIndex++ // this will trigger animation
                             } else {
                                 isQuizFinished = true
                             }
